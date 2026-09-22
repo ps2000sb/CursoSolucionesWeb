@@ -1,0 +1,1 @@
+package pe.edu.solucionesweb.tramite.repository; import org.springframework.data.jpa.repository.JpaRepository; import pe.edu.solucionesweb.tramite.model.Derivacion; public interface DerivacionRepository extends JpaRepository<Derivacion,Long>{}

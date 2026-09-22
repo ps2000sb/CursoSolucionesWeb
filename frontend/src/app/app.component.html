@@ -1,0 +1,953 @@
+<div class="d-flex min-vh-100 bg-light">
+
+  <aside class="sidebar text-white p-3">
+    <div class="brand">
+      <i class="bi bi-building"></i>
+      <span>
+        Municipalidad<br>
+        <small>Los Olivos</small>
+      </span>
+    </div>
+
+    <hr>
+
+    <p class="menu-title">MENÚ PRINCIPAL</p>
+
+    <button
+      (click)="navegar('dashboard')"
+      [class.active]="vista === 'dashboard'">
+      <i class="bi bi-grid"></i> Dashboard
+    </button>
+
+    <button
+      (click)="navegar('documentos')"
+      [class.active]="vista === 'documentos'">
+      <i class="bi bi-file-earmark-text"></i> Documentos
+    </button>
+
+    <button
+      (click)="navegar('tramites')"
+      [class.active]="vista === 'tramites'">
+      <i class="bi bi-arrow-left-right"></i> Trámites
+    </button>
+
+    <button (click)="navegar('usuarios')">
+      <i class="bi bi-people"></i> Usuarios
+    </button>
+
+    <button (click)="navegar('reportes')">
+      <i class="bi bi-bar-chart"></i> Reportes
+    </button>
+  </aside>
+
+  <main class="flex-grow-1">
+
+    <nav class="navbar bg-white border-bottom px-4">
+      <span class="fw-semibold">
+        Sistema de Trámite Documentario
+      </span>
+
+      <span class="text-muted">
+        <i class="bi bi-person-circle"></i> Administrador
+      </span>
+    </nav>
+
+    <div class="container-fluid p-4">
+
+      <!-- MENSAJES -->
+
+      <div
+        *ngIf="mensaje"
+        class="alert alert-success alert-dismissible">
+        {{ mensaje }}
+        <button
+          class="btn-close"
+          (click)="mensaje = ''">
+        </button>
+      </div>
+
+      <div
+        *ngIf="error"
+        class="alert alert-danger">
+        {{ error }}
+        <button
+          class="btn-close float-end"
+          (click)="error = ''">
+        </button>
+      </div>
+
+
+      <!-- DASHBOARD -->
+
+      <section *ngIf="vista === 'dashboard'">
+
+        <h3>Dashboard</h3>
+
+        <p class="text-muted">
+          Resumen de la gestión documentaria.
+        </p>
+
+        <div class="row g-3 mb-4">
+
+          <div
+            class="col-md-3"
+            *ngFor="let card of [
+              {
+                n: resumen?.totalDocumentos,
+                t: 'Total documentos',
+                i: 'bi-files'
+              },
+              {
+                n: resumen?.documentosPendientes,
+                t: 'Documentos pendientes',
+                i: 'bi-hourglass-split'
+              },
+              {
+                n: resumen?.tramitesEnProceso,
+                t: 'Trámites en proceso',
+                i: 'bi-gear'
+              },
+              {
+                n: resumen?.tramitesConcluidos,
+                t: 'Trámites concluidos',
+                i: 'bi-check-circle'
+              }
+            ]">
+
+            <div class="card shadow-sm h-100">
+
+              <div class="card-body d-flex justify-content-between">
+
+                <div>
+                  <div class="text-muted small">
+                    {{ card.t }}
+                  </div>
+
+                  <div class="display-6 fw-bold">
+                    {{ card.n ?? 0 }}
+                  </div>
+                </div>
+
+                <i
+                  class="bi {{ card.i }} fs-2 text-primary">
+                </i>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="row g-3">
+
+          <div class="col-lg-7">
+
+            <div class="card shadow-sm">
+
+              <div class="card-header bg-white fw-semibold">
+                Últimos trámites
+              </div>
+
+              <div class="table-responsive">
+
+                <table class="table mb-0">
+
+                  <tr>
+                    <th>Código</th>
+                    <th>Asunto</th>
+                    <th>Estado</th>
+                  </tr>
+
+                  <tr
+                    *ngFor="let t of tramites.slice(-5).reverse()">
+
+                    <td>
+                      {{ t.codigo }}
+                    </td>
+
+                    <td>
+                      {{ t.asunto }}
+                    </td>
+
+                    <td>
+                      <span
+                        class="badge"
+                        [ngClass]="badge(t.estado)">
+                        {{ t.estado.replace('_', ' ') }}
+                      </span>
+                    </td>
+
+                  </tr>
+
+                </table>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="col-lg-5">
+
+            <div class="card shadow-sm">
+
+              <div class="card-header bg-white fw-semibold">
+                Trámites por estado
+              </div>
+
+              <div
+                class="card-body"
+                *ngFor="let e of resumen?.porEstado | keyvalue">
+
+                <div class="d-flex justify-content-between mb-1">
+
+                  <span>
+                    {{ e.key.replace('_', ' ') }}
+                  </span>
+
+                  <b>
+                    {{ e.value }}
+                  </b>
+
+                </div>
+
+                <div class="progress mb-3">
+
+                  <div
+                    class="progress-bar"
+                    [style.width.%]="
+                      tramites.length
+                        ? (+e.value / tramites.length * 100)
+                        : 0
+                    ">
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- DOCUMENTOS -->
+
+      <section *ngIf="vista === 'documentos'">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+          <div>
+            <h3>Gestión de documentos</h3>
+
+            <p class="text-muted mb-0">
+              Registro, consulta y clasificación.
+            </p>
+          </div>
+
+          <button
+            class="btn btn-primary"
+            (click)="navegar('nuevoDocumento')">
+
+            <i class="bi bi-plus-lg"></i>
+            Registrar documento
+
+          </button>
+
+        </div>
+
+
+        <div class="card shadow-sm">
+
+          <div class="card-body">
+
+            <input
+              class="form-control mb-3"
+              placeholder="Buscar por asunto o remitente"
+              [(ngModel)]="busqueda"
+              (ngModelChange)="cargarDocumentos($event)">
+
+
+            <div class="table-responsive">
+
+              <table class="table align-middle">
+
+                <thead>
+
+                  <tr>
+                    <th>Código</th>
+                    <th>Tipo</th>
+                    <th>Remitente</th>
+                    <th>Asunto</th>
+                    <th>Estado</th>
+                  </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                  <tr *ngFor="let d of documentos">
+
+                    <td>
+                      {{ d.codigo }}
+                    </td>
+
+                    <td>
+                      {{ d.tipoDocumento }}
+                    </td>
+
+                    <td>
+                      {{ d.remitente }}
+                    </td>
+
+                    <td>
+                      {{ d.asunto }}
+                    </td>
+
+                    <td>
+
+                      <span
+                        class="badge"
+                        [ngClass]="badge(d.estado)">
+                        {{ d.estado }}
+                      </span>
+
+                    </td>
+
+                  </tr>
+
+
+                  <tr *ngIf="!documentos.length">
+
+                    <td
+                      colspan="5"
+                      class="text-center text-muted">
+
+                      No hay documentos registrados.
+
+                    </td>
+
+                  </tr>
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- NUEVO DOCUMENTO -->
+
+      <section *ngIf="vista === 'nuevoDocumento'">
+
+        <h3>Registrar documento</h3>
+
+
+        <form
+          class="card shadow-sm p-4"
+          (ngSubmit)="guardarDocumento()">
+
+          <div class="row g-3">
+
+            <div class="col-md-4">
+
+              <label>Código *</label>
+
+              <input
+                class="form-control"
+                [(ngModel)]="nuevoDocumento.codigo"
+                name="codigo"
+                placeholder="DOC-0003">
+
+            </div>
+
+
+            <div class="col-md-4">
+
+              <label>Tipo *</label>
+
+              <select
+                class="form-select"
+                [(ngModel)]="nuevoDocumento.tipoDocumento"
+                name="tipo">
+
+                <option>Solicitud</option>
+                <option>Queja</option>
+                <option>Informe</option>
+                <option>Otro</option>
+
+              </select>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+              <label>Fecha recepción *</label>
+
+              <input
+                type="date"
+                class="form-control"
+                [(ngModel)]="nuevoDocumento.fechaRecepcion"
+                name="fecha">
+
+            </div>
+
+
+            <div class="col-md-6">
+
+              <label>Remitente *</label>
+
+              <input
+                class="form-control"
+                [(ngModel)]="nuevoDocumento.remitente"
+                name="remitente">
+
+            </div>
+
+
+            <div class="col-md-6">
+
+              <label>DNI/RUC *</label>
+
+              <input
+                class="form-control"
+                pattern="[0-9]{8,11}"
+                [(ngModel)]="nuevoDocumento.dniRuc"
+                name="dni">
+
+            </div>
+
+
+            <div class="col-12">
+
+              <label>Asunto *</label>
+
+              <input
+                class="form-control"
+                [(ngModel)]="nuevoDocumento.asunto"
+                name="asunto">
+
+            </div>
+
+
+            <div class="col-12">
+
+              <label>Descripción</label>
+
+              <textarea
+                class="form-control"
+                [(ngModel)]="nuevoDocumento.descripcion"
+                name="descripcion">
+              </textarea>
+
+            </div>
+
+          </div>
+
+
+          <div class="mt-4">
+
+            <button
+              class="btn btn-primary">
+              Guardar documento
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-light ms-2"
+              (click)="navegar('documentos')">
+
+              Cancelar
+
+            </button>
+
+          </div>
+
+        </form>
+
+      </section>
+
+
+      <!-- TRÁMITES -->
+
+      <section *ngIf="vista === 'tramites'">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+          <div>
+
+            <h3>Gestión de trámites</h3>
+
+            <p class="text-muted mb-0">
+              Controle el ciclo de atención.
+            </p>
+
+          </div>
+
+
+          <button
+            class="btn btn-primary"
+            (click)="navegar('nuevoTramite')">
+
+            <i class="bi bi-plus-lg"></i>
+            Registrar trámite
+
+          </button>
+
+        </div>
+
+
+        <div class="card shadow-sm">
+
+          <div class="table-responsive">
+
+            <table class="table align-middle mb-0">
+
+              <thead>
+
+                <tr>
+
+                  <th>Código</th>
+                  <th>Tipo</th>
+                  <th>Solicitante</th>
+                  <th>Área</th>
+                  <th>Estado</th>
+                  <th></th>
+
+                </tr>
+
+              </thead>
+
+
+              <tbody>
+
+                <tr *ngFor="let t of tramites">
+
+                  <td>
+                    {{ t.codigo }}
+                  </td>
+
+                  <td>
+                    {{ t.tipoTramite }}
+                  </td>
+
+                  <td>
+                    {{ t.solicitante }}
+                  </td>
+
+                  <td>
+                    {{ t.areaResponsable?.nombre || 'Sin asignar' }}
+                  </td>
+
+                  <td>
+
+                    <span
+                      class="badge"
+                      [ngClass]="badge(t.estado)">
+
+                      {{ t.estado.replace('_', ' ') }}
+
+                    </span>
+
+                  </td>
+
+                  <td>
+
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      (click)="verDetalle(t)">
+
+                      Ver
+
+                    </button>
+
+                  </td>
+
+                </tr>
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- NUEVO TRÁMITE -->
+
+      <section *ngIf="vista === 'nuevoTramite'">
+
+        <h3>Registrar trámite</h3>
+
+
+        <form
+          class="card shadow-sm p-4"
+          (ngSubmit)="guardarTramite()">
+
+          <div class="row g-3">
+
+            <div class="col-md-4">
+
+              <label>Código *</label>
+
+              <input
+                class="form-control"
+                [(ngModel)]="nuevoTramite.codigo"
+                name="codigo"
+                placeholder="TRM-0003">
+
+            </div>
+
+
+            <div class="col-md-4">
+
+              <label>Tipo *</label>
+
+              <select
+                class="form-select"
+                [(ngModel)]="nuevoTramite.tipoTramite"
+                name="tipo">
+
+                <option>Solicitud</option>
+                <option>Queja</option>
+                <option>Permiso</option>
+
+              </select>
+
+            </div>
+
+
+            <div class="col-md-4">
+
+              <label>Área responsable</label>
+
+              <select
+                class="form-select"
+                [(ngModel)]="nuevoTramite.areaResponsable"
+                name="area">
+
+                <option [ngValue]="undefined">
+                  Seleccione
+                </option>
+
+                <option
+                  *ngFor="let a of areas"
+                  [ngValue]="a">
+
+                  {{ a.nombre }}
+
+                </option>
+
+              </select>
+
+            </div>
+
+
+            <div class="col-md-6">
+
+              <label>Solicitante *</label>
+
+              <input
+                class="form-control"
+                [(ngModel)]="nuevoTramite.solicitante"
+                name="solicitante">
+
+            </div>
+
+
+            <div class="col-md-6">
+
+              <label>DNI/RUC *</label>
+
+              <input
+                class="form-control"
+                [(ngModel)]="nuevoTramite.dniRuc"
+                name="dni">
+
+            </div>
+
+
+            <div class="col-12">
+
+              <label>Asunto *</label>
+
+              <input
+                class="form-control"
+                [(ngModel)]="nuevoTramite.asunto"
+                name="asunto">
+
+            </div>
+
+
+            <div class="col-12">
+
+              <label>Descripción</label>
+
+              <textarea
+                class="form-control"
+                [(ngModel)]="nuevoTramite.descripcion"
+                name="descripcion">
+              </textarea>
+
+            </div>
+
+          </div>
+
+
+          <button
+            class="btn btn-primary mt-4">
+
+            Registrar trámite
+
+          </button>
+
+        </form>
+
+      </section>
+
+
+      <!-- DETALLE DEL TRÁMITE -->
+
+      <section
+        *ngIf="vista === 'detalle' && detalle">
+
+        <div class="d-flex justify-content-between">
+
+          <div>
+
+            <h3>
+              {{ detalle.codigo }}
+            </h3>
+
+            <p class="text-muted">
+              {{ detalle.asunto }}
+            </p>
+
+          </div>
+
+
+          <button
+            class="btn btn-outline-secondary"
+            (click)="navegar('tramites')">
+
+            Volver
+
+          </button>
+
+        </div>
+
+
+        <div class="row g-3">
+
+
+          <div class="col-lg-7">
+
+            <div class="card shadow-sm">
+
+              <div class="card-body">
+
+                <h5>
+                  Seguimiento del trámite
+                </h5>
+
+
+                <div class="timeline">
+
+                  <div
+                    class="timeline-item"
+                    *ngFor="let h of historial">
+
+                    <span class="dot"></span>
+
+                    <b>
+                      {{ h.estado.replace('_', ' ') }}
+                    </b>
+
+                    <div class="small text-muted">
+
+                      {{ h.fecha | date:'dd/MM/yyyy HH:mm' }}
+
+                      ·
+
+                      {{ h.area?.nombre }}
+
+                    </div>
+
+                    <div>
+                      {{ h.observacion }}
+                    </div>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="col-lg-5">
+
+
+            <div class="card shadow-sm mb-3">
+
+              <div class="card-body">
+
+                <h5>
+                  Derivar trámite
+                </h5>
+
+
+                <select
+                  class="form-select mb-2"
+                  [(ngModel)]="derivacion.areaDestinoId"
+                  name="areaDestino">
+
+                  <option [ngValue]="0">
+                    Área destino
+                  </option>
+
+                  <option
+                    *ngFor="let a of areas"
+                    [ngValue]="a.id">
+
+                    {{ a.nombre }}
+
+                  </option>
+
+                </select>
+
+
+                <input
+                  class="form-control mb-2"
+                  placeholder="Responsable"
+                  [(ngModel)]="derivacion.responsable">
+
+
+                <textarea
+                  class="form-control mb-2"
+                  placeholder="Observación"
+                  [(ngModel)]="derivacion.observacion">
+                </textarea>
+
+
+                <button
+                  class="btn btn-primary w-100"
+                  (click)="derivar()">
+
+                  Derivar
+
+                </button>
+
+              </div>
+
+            </div>
+
+
+            <div class="card shadow-sm">
+
+              <div class="card-body">
+
+                <h5>
+                  Actualizar estado
+                </h5>
+
+
+                <select
+                  class="form-select"
+                  #estado>
+
+                  <option>EN_PROCESO</option>
+                  <option>ATENDIDO</option>
+                  <option>CONCLUIDO</option>
+
+                </select>
+
+
+                <button
+                  class="btn btn-success mt-2 w-100"
+                  (click)="cambiarEstado(estado.value)">
+
+                  Actualizar
+
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- USUARIOS / REPORTES -->
+
+      <section
+        *ngIf="vista === 'usuarios' || vista === 'reportes'">
+
+        <h3>
+          {{
+            vista === 'usuarios'
+              ? 'Gestión de usuarios'
+              : 'Reportes'
+          }}
+        </h3>
+
+
+        <div class="card shadow-sm">
+
+          <div class="card-body">
+
+            <p *ngIf="vista === 'usuarios'">
+
+              Módulo preparado para administrar usuarios,
+              roles y áreas mediante la API REST.
+
+            </p>
+
+
+            <p *ngIf="vista === 'reportes'">
+
+              Los indicadores del dashboard se obtienen desde
+              <code>/api/reportes/resumen</code>.
+
+              Esta vista puede ampliarse con filtros de fecha
+              y exportación.
+
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+</div>

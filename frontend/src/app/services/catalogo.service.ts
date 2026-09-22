@@ -1,0 +1,2 @@
+import { Injectable } from '@angular/core'; import { HttpClient } from '@angular/common/http'; import { Area, Resumen } from '../models/modelos';
+@Injectable({providedIn:'root'}) export class CatalogoService { constructor(private http:HttpClient){} areas(){return this.http.get<Area[]>('http://localhost:8080/api/areas')} resumen(){return this.http.get<Resumen>('http://localhost:8080/api/reportes/resumen')} }

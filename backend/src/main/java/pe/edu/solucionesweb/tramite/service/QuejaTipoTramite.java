@@ -1,0 +1,2 @@
+package pe.edu.solucionesweb.tramite.service; import org.springframework.stereotype.Component; import pe.edu.solucionesweb.tramite.model.Tramite;
+@Component public class QuejaTipoTramite implements TipoTramite { public String nombre(){return "Queja";} public void validar(Tramite t){ SolicitudTipoTramite.validarComun(t); if(t.getDescripcion()==null||t.getDescripcion().isBlank()) throw new IllegalArgumentException("La descripción de la queja es obligatoria."); } }

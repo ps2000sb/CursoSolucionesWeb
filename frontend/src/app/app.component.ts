@@ -1,0 +1,18 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common'; import { FormsModule } from '@angular/forms';
+import { Area, Documento, Historial, Resumen, Tramite } from './models/modelos';
+import { DocumentoService } from './services/documento.service'; import { TramiteService } from './services/tramite.service'; import { CatalogoService } from './services/catalogo.service';
+@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule],templateUrl:'./app.component.html',styleUrl:'./app.component.css'})
+export class AppComponent implements OnInit {
+ vista='dashboard'; mensaje=''; error=''; busqueda=''; documentos:Documento[]=[]; tramites:Tramite[]=[]; areas:Area[]=[]; historial:Historial[]=[]; detalle?:Tramite; resumen?:Resumen;
+ nuevoDocumento:Documento=this.documentoVacio(); nuevoTramite:Tramite=this.tramiteVacio(); derivacion={areaDestinoId:0,responsable:'',observacion:''};
+ constructor(private docs:DocumentoService,private ts:TramiteService,private catalogo:CatalogoService){}
+ ngOnInit(){this.cargarTodo()} cargarTodo(){this.docs.listar().subscribe({next:x=>this.documentos=x,error:e=>this.fallo(e)});this.ts.listar().subscribe({next:x=>this.tramites=x,error:e=>this.fallo(e)});this.catalogo.areas().subscribe({next:x=>this.areas=x,error:e=>this.fallo(e)});this.catalogo.resumen().subscribe({next:x=>this.resumen=x,error:e=>this.fallo(e)});}
+ navegar(v:string){this.vista=v;this.mensaje='';this.error='';if(v==='dashboard'||v==='documentos'||v==='tramites')this.cargarTodo();}
+ guardarDocumento(){if(!this.nuevoDocumento.codigo||!this.nuevoDocumento.tipoDocumento||!this.nuevoDocumento.remitente||!this.nuevoDocumento.dniRuc||!this.nuevoDocumento.asunto){this.error='Debe completar los campos obligatorios.';return;}this.docs.crear(this.nuevoDocumento).subscribe({next:()=>{this.mensaje='Documento registrado correctamente.';this.nuevoDocumento=this.documentoVacio();this.navegar('documentos');},error:e=>this.fallo(e)});}
+ guardarTramite(){if(!this.nuevoTramite.codigo||!this.nuevoTramite.tipoTramite||!this.nuevoTramite.solicitante||!this.nuevoTramite.dniRuc||!this.nuevoTramite.asunto){this.error='Debe completar los campos obligatorios.';return;}this.ts.crear(this.nuevoTramite).subscribe({next:()=>{this.mensaje='Trámite registrado correctamente.';this.nuevoTramite=this.tramiteVacio();this.navegar('tramites');},error:e=>this.fallo(e)});}
+ verDetalle(t:Tramite){this.detalle=t;this.ts.historial(t.id!).subscribe({next:h=>this.historial=h,error:e=>this.fallo(e)});this.vista='detalle';}
+ derivar(){if(!this.detalle||!this.derivacion.areaDestinoId){this.error='Seleccione el área destino.';return;}this.ts.derivar(this.detalle.id!,this.derivacion).subscribe({next:t=>{this.detalle=t;this.mensaje='Trámite derivado correctamente.';this.verDetalle(t);},error:e=>this.fallo(e)});}
+ cambiarEstado(estado:string){if(!this.detalle)return;this.ts.estado(this.detalle.id!,estado,'Estado actualizado desde el sistema').subscribe({next:t=>{this.detalle=t;this.mensaje='Trámite actualizado correctamente.';this.verDetalle(t);},error:e=>this.fallo(e)});}
+ badge(e:string){return e==='CONCLUIDO'||e==='ATENDIDO'?'text-bg-success':e==='PENDIENTE'||e==='EN_PROCESO'?'text-bg-warning':'text-bg-primary';} private fallo(e:any){this.error=e?.error?.mensaje||'No se pudo completar la operación.';} private documentoVacio():Documento{return {codigo:'',tipoDocumento:'Solicitud',remitente:'',dniRuc:'',asunto:'',fechaRecepcion:new Date().toISOString().slice(0,10),estado:'PENDIENTE'};} private tramiteVacio():Tramite{return {codigo:'',tipoTramite:'Solicitud',solicitante:'',dniRuc:'',asunto:'',fechaRegistro:new Date().toISOString().slice(0,10),estado:'PENDIENTE'};}
+}

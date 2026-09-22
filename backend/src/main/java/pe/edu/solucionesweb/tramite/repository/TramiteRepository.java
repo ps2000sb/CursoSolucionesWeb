@@ -1,0 +1,2 @@
+package pe.edu.solucionesweb.tramite.repository; import org.springframework.data.jpa.repository.JpaRepository; import pe.edu.solucionesweb.tramite.model.Tramite; import pe.edu.solucionesweb.tramite.model.EstadoTramite; import java.util.List;
+public interface TramiteRepository extends JpaRepository<Tramite,Long>{ List<Tramite> findByAsuntoContainingIgnoreCaseOrSolicitanteContainingIgnoreCase(String asunto,String solicitante); long countByEstado(EstadoTramite estado); }

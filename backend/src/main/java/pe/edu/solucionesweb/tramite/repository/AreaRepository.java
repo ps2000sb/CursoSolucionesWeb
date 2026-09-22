@@ -1,0 +1,1 @@
+package pe.edu.solucionesweb.tramite.repository; import org.springframework.data.jpa.repository.JpaRepository; import pe.edu.solucionesweb.tramite.model.Area; public interface AreaRepository extends JpaRepository<Area,Long>{}

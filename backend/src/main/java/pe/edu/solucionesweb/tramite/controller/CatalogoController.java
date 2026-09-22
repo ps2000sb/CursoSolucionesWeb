@@ -1,0 +1,6 @@
+package pe.edu.solucionesweb.tramite.controller;
+import org.springframework.http.*; import org.springframework.web.bind.annotation.*; import pe.edu.solucionesweb.tramite.model.*; import pe.edu.solucionesweb.tramite.repository.*; import java.util.*;
+@RestController @RequestMapping("/api") @CrossOrigin(origins="http://localhost:4200") public class CatalogoController { private final AreaRepository areas;private final UsuarioRepository usuarios; public CatalogoController(AreaRepository a,UsuarioRepository u){areas=a;usuarios=u;}
+ @GetMapping("/areas") public List<Area> areas(){return areas.findAll();} @PostMapping("/areas") @ResponseStatus(HttpStatus.CREATED) public Area crearArea(@RequestBody Area a){return areas.save(a);}
+ @GetMapping("/usuarios") public List<Usuario> usuarios(){return usuarios.findAll();} @PostMapping("/usuarios") @ResponseStatus(HttpStatus.CREATED) public Usuario crearUsuario(@RequestBody Usuario u){return usuarios.save(u);} @PutMapping("/usuarios/{id}") public Usuario editarUsuario(@PathVariable Long id,@RequestBody Usuario u){if(!usuarios.existsById(id))throw new NoSuchElementException("No se encontró el usuario.");return usuarios.save(u);} @DeleteMapping("/usuarios/{id}") @ResponseStatus(HttpStatus.NO_CONTENT) public void borrarUsuario(@PathVariable Long id){usuarios.deleteById(id);}
+}
