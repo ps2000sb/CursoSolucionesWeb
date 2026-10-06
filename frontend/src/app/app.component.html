@@ -31,6 +31,7 @@
       <i class="bi bi-arrow-left-right"></i> Trámites
     </button>
 
+    <button (click)="navegar('areas')" [class.active]="vista === 'areas'"><i class="bi bi-building"></i> Áreas</button>
     <button (click)="navegar('usuarios')">
       <i class="bi bi-people"></i> Usuarios
     </button>
@@ -77,6 +78,7 @@
       </div>
 
 
+      <app-areas *ngIf="vista === 'areas'" (actualizado)="refrescarAreas()"></app-areas>
       <!-- DASHBOARD -->
 
       <section *ngIf="vista === 'dashboard'">
@@ -650,7 +652,7 @@
                 </option>
 
                 <option
-                  *ngFor="let a of areas"
+                  *ngFor="let a of areasActivas"
                   [ngValue]="a">
 
                   {{ a.nombre }}
@@ -829,7 +831,7 @@
                   </option>
 
                   <option
-                    *ngFor="let a of areas"
+                    *ngFor="let a of areasActivas"
                     [ngValue]="a.id">
 
                     {{ a.nombre }}

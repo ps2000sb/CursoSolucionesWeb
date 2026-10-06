@@ -2,6 +2,8 @@
 
 Proyecto académico de la Municipalidad de Los Olivos, construido con Angular, Spring Boot y MySQL.
 
+El mantenimiento completo de **Áreas (Integrante 4)** está integrado. Consulte [GUIA_AREAS.md](GUIA_AREAS.md) para instalar, actualizar una base existente y demostrar las seis operaciones.
+
 ## Ejecución
 
 1. Ejecute `database/tramite_documentario.sql` en MySQL Workbench.

@@ -1,12 +1,16 @@
+import { AreasComponent } from './areas/areas.component';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; import { FormsModule } from '@angular/forms';
 import { Area, Documento, Historial, Resumen, Tramite } from './models/modelos';
 import { DocumentoService } from './services/documento.service'; import { TramiteService } from './services/tramite.service'; import { CatalogoService } from './services/catalogo.service';
-@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule],templateUrl:'./app.component.html',styleUrl:'./app.component.css'})
+@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,AreasComponent],templateUrl:'./app.component.html',styleUrl:'./app.component.css'})
 export class AppComponent implements OnInit {
  vista='dashboard'; mensaje=''; error=''; busqueda=''; documentos:Documento[]=[]; tramites:Tramite[]=[]; areas:Area[]=[]; historial:Historial[]=[]; detalle?:Tramite; resumen?:Resumen;
  nuevoDocumento:Documento=this.documentoVacio(); nuevoTramite:Tramite=this.tramiteVacio(); derivacion={areaDestinoId:0,responsable:'',observacion:''};
  constructor(private docs:DocumentoService,private ts:TramiteService,private catalogo:CatalogoService){}
+ cargarDocumentos(q:string){this.docs.listar(q).subscribe({next:x=>this.documentos=x,error:e=>this.fallo(e)});}
+ refrescarAreas(){this.catalogo.areas().subscribe({next:x=>this.areas=x,error:e=>this.fallo(e)});}
+ get areasActivas(){return this.areas.filter(a=>a.estado==='ACTIVO');}
  ngOnInit(){this.cargarTodo()} cargarTodo(){this.docs.listar().subscribe({next:x=>this.documentos=x,error:e=>this.fallo(e)});this.ts.listar().subscribe({next:x=>this.tramites=x,error:e=>this.fallo(e)});this.catalogo.areas().subscribe({next:x=>this.areas=x,error:e=>this.fallo(e)});this.catalogo.resumen().subscribe({next:x=>this.resumen=x,error:e=>this.fallo(e)});}
  navegar(v:string){this.vista=v;this.mensaje='';this.error='';if(v==='dashboard'||v==='documentos'||v==='tramites')this.cargarTodo();}
  guardarDocumento(){if(!this.nuevoDocumento.codigo||!this.nuevoDocumento.tipoDocumento||!this.nuevoDocumento.remitente||!this.nuevoDocumento.dniRuc||!this.nuevoDocumento.asunto){this.error='Debe completar los campos obligatorios.';return;}this.docs.crear(this.nuevoDocumento).subscribe({next:()=>{this.mensaje='Documento registrado correctamente.';this.nuevoDocumento=this.documentoVacio();this.navegar('documentos');},error:e=>this.fallo(e)});}
