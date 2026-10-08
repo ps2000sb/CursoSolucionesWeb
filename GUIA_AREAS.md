@@ -5,7 +5,7 @@ Este proyecto incluye registrar, listar, buscar, consultar, editar y eliminar á
 ## Preparación y ejecución en Visual Studio Code
 
 1. Descomprime el ZIP y abre la carpeta `CursoSolucionesWeb-main` en VS Code.
-2. Necesitas Node.js compatible con Angular 19 (por ejemplo, Node 22), JDK 21, Maven 3.9 y MySQL 8. Puedes editar el proyecto en VS Code o Eclipse.
+2. Necesitas Node.js compatible con Angular 19 (por ejemplo, Node 22), JDK 25 (LTS), Maven 3.9 y MySQL 8. Puedes editar el proyecto en VS Code o Eclipse.
 3. Prepara la base de datos en MySQL Workbench:
    - **Instalación nueva:** ejecuta `database/tramite_documentario.sql` en una base nueva. Incluye las áreas de ejemplo y la columna `estado`.
    - **Base del proyecto original ya instalada:** ejecuta **solo** `database/actualizar_areas.sql`, una vez. Conserva los registros. No vuelvas a ejecutar el script de instalación sobre las tablas existentes.

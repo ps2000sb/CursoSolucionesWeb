@@ -13,7 +13,7 @@
 
 ## Límites de la verificación
 
-- El entorno dispone de JDK 17. Se compiló con `-Djava.version=17` para verificar el código, conservando JDK 21 en el `pom.xml` original para la entrega.
+- La verificación original se ejecutó con JDK 17 y `-Djava.version=17`; en ese momento el `pom.xml` conservaba Java 21 para la entrega. Este es un registro histórico: el runtime objetivo de la entrega se ha actualizado a Java 25.
 - Maven generó las clases, pero el cierre de algunos archivos JAR produjo errores de acceso del entorno. Se ejecutaron las clases generadas mediante `mvn -Djava.version=17 surefire:test`, que finalizó con `BUILD SUCCESS` y las cinco pruebas aprobadas.
 - `npm run build` no completó el empaquetado: el ejecutable de esbuild no pudo leer una carpeta superior en este entorno restringido de Windows. La compilación independiente de Angular con plantillas estrictas sí pasó. Ejecuta `npm.cmd run build` en tu equipo siguiendo la guía.
 - No se ejecutó una prueba visual en navegador ni una instalación real en MySQL. Los scripts SQL se revisaron y se entregan separados para instalación nueva y actualización; las pruebas de persistencia se hicieron con H2, no con el servidor MySQL del usuario.

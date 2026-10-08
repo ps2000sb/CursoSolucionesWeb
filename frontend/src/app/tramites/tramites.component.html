@@ -1,0 +1,93 @@
+<section>
+ <div class="alert alert-success" *ngIf="mensaje" role="status">{{ mensaje }}</div>
+ <div class="alert alert-danger" *ngIf="error" role="alert">{{ error }}</div>
+
+ <ng-container *ngIf="vista === 'lista'">
+  <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+   <div><h3>Mantenimiento de Trámites</h3><p class="text-muted mb-0">Administre los trámites registrados en el sistema.</p></div>
+   <button class="btn btn-primary" (click)="registrar()"><i class="bi bi-plus-lg"></i> Registrar trámite</button>
+  </div>
+  <div class="card shadow-sm"><div class="card-body">
+   <form class="d-flex flex-wrap gap-2 mb-3" (ngSubmit)="listar()">
+    <label for="buscarTramite" class="visually-hidden">Buscar trámites</label>
+    <input id="buscarTramite" class="form-control flex-grow-1 w-auto" name="busqueda" [(ngModel)]="busqueda" placeholder="Buscar por ID, código, tipo, solicitante, DNI/RUC, asunto, área o estado">
+    <button class="btn btn-outline-primary" [disabled]="cargando">Buscar</button>
+    <button type="button" class="btn btn-outline-secondary" (click)="limpiar()" [disabled]="cargando">Limpiar</button>
+   </form>
+   <div *ngIf="pendienteEliminar" class="alert alert-warning" role="alert">
+    ¿Eliminar el trámite <strong>{{ pendienteEliminar.codigo }}</strong>? Se eliminarán también su historial y sus derivaciones.
+    <div class="mt-2">
+     <button class="btn btn-danger me-2" (click)="eliminar()" [disabled]="guardando">Confirmar eliminación</button>
+     <button class="btn btn-light" (click)="pendienteEliminar = undefined" [disabled]="guardando">Cancelar</button>
+    </div>
+   </div>
+   <p *ngIf="cargando" role="status">Cargando trámites…</p>
+   <div class="table-responsive" *ngIf="!cargando"><table class="table align-middle">
+    <thead><tr><th>Código</th><th>Tipo</th><th>Solicitante</th><th>DNI/RUC</th><th>Asunto</th><th>Fecha</th><th>Área responsable</th><th>Estado</th><th>Acciones</th></tr></thead>
+    <tbody>
+     <tr *ngFor="let t of tramites">
+      <td>{{ t.codigo }}</td><td>{{ t.tipoTramite }}</td><td>{{ t.solicitante }}</td><td>{{ t.dniRuc }}</td><td>{{ t.asunto }}</td><td>{{ t.fechaRegistro }}</td>
+      <td>{{ t.areaResponsable?.nombre || 'Sin asignar' }}</td>
+      <td><span class="badge" [ngClass]="badge(t.estado)">{{ t.estado.replace('_', ' ') }}</span></td>
+      <td><div class="d-flex gap-2">
+       <button class="btn btn-sm btn-outline-primary" (click)="ver(t)" [disabled]="guardando">Ver</button>
+       <button class="btn btn-sm btn-outline-secondary" (click)="ver(t, true)" [disabled]="guardando">Editar</button>
+       <button class="btn btn-sm btn-outline-danger" (click)="pendienteEliminar = t; error = ''; mensaje = ''" [disabled]="guardando">Eliminar</button>
+      </div></td>
+     </tr>
+     <tr *ngIf="!tramites.length"><td colspan="9" class="text-center text-muted">{{ busqueda ? 'No se encontraron trámites con esa búsqueda.' : 'No hay trámites registrados.' }}</td></tr>
+    </tbody>
+   </table></div>
+  </div></div>
+ </ng-container>
+
+ <ng-container *ngIf="vista === 'formulario'">
+  <h3>{{ formulario.id ? 'Editar trámite' : 'Registrar trámite' }}</h3>
+  <form class="card shadow-sm p-4" #tramiteForm="ngForm" (ngSubmit)="guardar()">
+   <p *ngIf="formulario.id" class="text-muted">ID: {{ formulario.id }}</p>
+   <div class="row g-3">
+    <div class="col-md-4"><label for="codigoTramite" class="form-label">Código *</label>
+     <input id="codigoTramite" name="codigo" class="form-control" [(ngModel)]="formulario.codigo" required maxlength="30" placeholder="TRM-0003" [disabled]="guardando"></div>
+    <div class="col-md-4"><label for="tipoTramite" class="form-label">Tipo de trámite *</label>
+     <select id="tipoTramite" name="tipoTramite" class="form-select" [(ngModel)]="formulario.tipoTramite" required [disabled]="guardando"><option *ngFor="let tipo of tipos" [value]="tipo">{{ tipo }}</option></select></div>
+    <div class="col-md-4"><label for="fechaTramite" class="form-label">Fecha *</label>
+     <input id="fechaTramite" name="fechaRegistro" type="date" class="form-control" [(ngModel)]="formulario.fechaRegistro" required [disabled]="guardando"></div>
+    <div class="col-md-6"><label for="solicitanteTramite" class="form-label">Solicitante *</label>
+     <input id="solicitanteTramite" name="solicitante" class="form-control" [(ngModel)]="formulario.solicitante" required maxlength="150" [disabled]="guardando"></div>
+    <div class="col-md-6"><label for="dniRucTramite" class="form-label">DNI/RUC *</label>
+     <input id="dniRucTramite" name="dniRuc" class="form-control" [(ngModel)]="formulario.dniRuc" required pattern="^(\d{8}|\d{11})$" maxlength="11" placeholder="8 dígitos (DNI) u 11 dígitos (RUC)" [disabled]="guardando"></div>
+    <div class="col-12"><label for="asuntoTramite" class="form-label">Asunto *</label>
+     <input id="asuntoTramite" name="asunto" class="form-control" [(ngModel)]="formulario.asunto" required maxlength="255" [disabled]="guardando"></div>
+    <div class="col-12"><label for="descripcionTramite" class="form-label">Descripción{{ formulario.tipoTramite === 'Queja' ? ' *' : '' }}</label>
+     <textarea id="descripcionTramite" name="descripcion" class="form-control" rows="3" [(ngModel)]="formulario.descripcion" maxlength="1000" [required]="formulario.tipoTramite === 'Queja'" [disabled]="guardando"></textarea></div>
+    <div class="col-md-6"><label for="areaTramite" class="form-label">Área responsable *</label>
+     <select id="areaTramite" name="area" class="form-select" [(ngModel)]="areaId" required [disabled]="guardando">
+      <option [ngValue]="undefined">Seleccione</option>
+      <option *ngFor="let a of areasDisponibles" [ngValue]="a.id">{{ a.nombre }}</option></select></div>
+    <div class="col-md-6"><label for="estadoTramite" class="form-label">Estado *</label>
+     <select id="estadoTramite" name="estado" class="form-select" [(ngModel)]="formulario.estado" required [disabled]="guardando"><option *ngFor="let e of estados" [value]="e">{{ e.replace('_', ' ') }}</option></select></div>
+   </div>
+   <div class="mt-4"><button class="btn btn-primary" [disabled]="tramiteForm.invalid || guardando">{{ guardando ? 'Guardando…' : 'Guardar trámite' }}</button>
+    <button type="button" class="btn btn-light ms-2" (click)="volver()" [disabled]="guardando">Cancelar</button></div>
+  </form>
+ </ng-container>
+
+ <ng-container *ngIf="vista === 'detalle' && detalle">
+  <h3>Detalle del trámite</h3>
+  <div class="card shadow-sm p-4">
+   <dl class="row"><dt class="col-sm-3">ID</dt><dd class="col-sm-9">{{ detalle.id }}</dd>
+    <dt class="col-sm-3">Código</dt><dd class="col-sm-9">{{ detalle.codigo }}</dd>
+    <dt class="col-sm-3">Tipo de trámite</dt><dd class="col-sm-9">{{ detalle.tipoTramite }}</dd>
+    <dt class="col-sm-3">Solicitante</dt><dd class="col-sm-9">{{ detalle.solicitante }}</dd>
+    <dt class="col-sm-3">DNI/RUC</dt><dd class="col-sm-9">{{ detalle.dniRuc }}</dd>
+    <dt class="col-sm-3">Asunto</dt><dd class="col-sm-9">{{ detalle.asunto }}</dd>
+    <dt class="col-sm-3">Descripción</dt><dd class="col-sm-9">{{ detalle.descripcion || 'Sin descripción' }}</dd>
+    <dt class="col-sm-3">Fecha</dt><dd class="col-sm-9">{{ detalle.fechaRegistro }}</dd>
+    <dt class="col-sm-3">Área responsable</dt><dd class="col-sm-9">{{ detalle.areaResponsable?.nombre || 'Sin asignar' }}</dd>
+    <dt class="col-sm-3">Estado</dt><dd class="col-sm-9"><span class="badge" [ngClass]="badge(detalle.estado)">{{ detalle.estado.replace('_', ' ') }}</span></dd></dl>
+   <div><button class="btn btn-primary" (click)="ver(detalle, true)">Editar</button>
+    <button class="btn btn-outline-primary ms-2" (click)="seguimiento.emit(detalle)">Derivación e historial</button>
+    <button class="btn btn-light ms-2" (click)="volver()">Volver</button></div>
+  </div>
+ </ng-container>
+</section>

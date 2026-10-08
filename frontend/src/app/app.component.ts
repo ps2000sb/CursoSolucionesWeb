@@ -1,9 +1,10 @@
 import { AreasComponent } from './areas/areas.component';
+import { TramitesComponent } from './tramites/tramites.component';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; import { FormsModule } from '@angular/forms';
 import { Area, Documento, Historial, Resumen, Tramite } from './models/modelos';
 import { DocumentoService } from './services/documento.service'; import { TramiteService } from './services/tramite.service'; import { CatalogoService } from './services/catalogo.service';
-@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,AreasComponent],templateUrl:'./app.component.html',styleUrl:'./app.component.css'})
+@Component({selector:'app-root',standalone:true,imports:[CommonModule,FormsModule,AreasComponent,TramitesComponent],templateUrl:'./app.component.html',styleUrl:'./app.component.css'})
 export class AppComponent implements OnInit {
  vista='dashboard'; mensaje=''; error=''; busqueda=''; documentos:Documento[]=[]; tramites:Tramite[]=[]; areas:Area[]=[]; historial:Historial[]=[]; detalle?:Tramite; resumen?:Resumen;
  nuevoDocumento:Documento=this.documentoVacio(); nuevoTramite:Tramite=this.tramiteVacio(); derivacion={areaDestinoId:0,responsable:'',observacion:''};
